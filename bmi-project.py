@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, Input, Output
 import pandas as pd
 import plotly.express as px
 
@@ -42,19 +42,19 @@ region_line.update_layout(
 
 strictly_two_sex = df[df["sex"] != "Both sexes"]
 
-sex_hist = px.histogram(
-    strictly_two_sex,
-    x = "numeric",
-    color = "sex",
-    barmode = "overlay",
-    title = "BMI by Sex"
-)
+# sex_hist = px.histogram(
+#     strictly_two_sex,
+#     x = "numeric",
+#     color = "sex",
+#     barmode = "overlay",
+#     title = "BMI by Sex"
+# )
 
-sex_hist.update_layout(
-    plot_bgcolor = "#111111",
-    paper_bgcolor = "#111111",
-    font_color = '#7FDBFF'
-)
+# sex_hist.update_layout(
+#     plot_bgcolor = "#111111",
+#     paper_bgcolor = "#111111",
+#     font_color = '#7FDBFF'
+# )
 
 
 
@@ -66,12 +66,26 @@ app.layout = html.Div(style={"backgroundColor": "#111111"},
             figure=region_line            
         ),
 
-        dcc.Graph(
-            figure=sex_hist            
+        dcc.Dropdown(id="sex-choice", options=[
+            {"label": x, "value": x} for x in strictly_two_sex["sex"].unique()],
+            value="Female"
         ),
+
+        dcc.Graph(
+            id="sex-hist"            
+        )
     ]
 )
 
+@app.callback(
+    Output(component_id="sex-hist", component_property="figure"),
+    Input(component_id="sex-choice", component_property="value")
+)
+def interactive_histogram(value_sex):
+    dff = strictly_two_sex[strictly_two_sex["sex"] == value_sex]
+    fig = px.histogram(dff, x="numeric")
+    return fig
+
+
 if __name__ == "__main__":
-    # print(strictly_two_sex)
     app.run_server(debug = True)
